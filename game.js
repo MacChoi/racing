@@ -213,91 +213,236 @@ class RacingGame {
     createCar(color = 0xff0000, type = 'sedan') { // 차량 색상 및 타입 인자로 받도록 수정
         const car = new THREE.Group();
 
-        let bodyGeometry;
-        let roofGeometry;
-
-        switch(type) {
-            case 'sedan':
-                bodyGeometry = new THREE.BoxGeometry(1.8, 0.5, 4);
-                roofGeometry = new THREE.BoxGeometry(1.5, 0.4, 2);
-                break;
-            case 'truck':
-                bodyGeometry = new THREE.BoxGeometry(2, 1, 5);
-                roofGeometry = new THREE.BoxGeometry(1.8, 0.5, 2);
-                break;
-            case 'van':
-                bodyGeometry = new THREE.BoxGeometry(2.2, 1.2, 4.5);
-                roofGeometry = new THREE.BoxGeometry(2, 0.6, 2);
-                break;
-            case 'sport': // 스포츠카 타입 추가
-                bodyGeometry = new THREE.BoxGeometry(1.9, 0.4, 4.2);
-                roofGeometry = new THREE.BoxGeometry(1.6, 0.3, 1.5);
-                break;
-            default: // sedan
-                bodyGeometry = new THREE.BoxGeometry(1.8, 0.5, 4);
-                roofGeometry = new THREE.BoxGeometry(1.5, 0.4, 2);
-                break;
-        }
-
-        // 차체
-        const bodyMaterial = new THREE.MeshStandardMaterial({ 
-            color: color, // 인자로 받은 색상 적용
+        const bodyMaterial = new THREE.MeshStandardMaterial({
+            color: color,
             metalness: 0.8,
             roughness: 0.2
         });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 0.5;
-        car.add(body);
 
-        // 지붕
-        const roofMaterial = new THREE.MeshStandardMaterial({ 
-            color: color, // 인자로 받은 색상 적용
-            metalness: 0.8,
-            roughness: 0.2
-        });
-        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-        roof.position.y = (type === 'sedan' ? 1.2 : type === 'truck' ? 1.8 : type === 'van' ? 2 : 1.1);
-        roof.position.z = (type === 'sedan' ? -0.2 : type === 'truck' ? 0 : type === 'van' ? 0 : 0.5);
-        car.add(roof);
-
-        // 바퀴
+        let mainBody, cabin, hood, trunk, cargoBed;
         const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-        const wheelMaterial = new THREE.MeshStandardMaterial({ 
+        const wheelMaterial = new THREE.MeshStandardMaterial({
             color: 0x333333,
             metalness: 0.5,
             roughness: 0.7
         });
-        
-        const wheelPositions = [
-            { x: -0.9, y: 0.4, z: (type === 'sedan' ? 1.2 : type === 'truck' ? 1.8 : type === 'van' ? 1.5 : 1.3) },
-            { x: 0.9, y: 0.4, z: (type === 'sedan' ? 1.2 : type === 'truck' ? 1.8 : type === 'van' ? 1.5 : 1.3) },
-            { x: -0.9, y: 0.4, z: (type === 'sedan' ? -1.2 : type === 'truck' ? -1.8 : type === 'van' ? -1.5 : -1.3) },
-            { x: 0.9, y: 0.4, z: (type === 'sedan' ? -1.2 : type === 'truck' ? -1.8 : type === 'van' ? -1.5 : -1.3) }
-        ];
 
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-            wheel.position.set(pos.x, pos.y, pos.z);
-            wheel.rotation.z = Math.PI / 2;
-            car.add(wheel);
-        });
+        switch(type) {
+            case 'sedan':
+                // Base body
+                mainBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 3), bodyMaterial);
+                mainBody.position.y = 0.5;
+                car.add(mainBody);
 
-        // 전조등
-        const headlightGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const headlightMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xffffcc,
-            emissive: 0xffffcc,
-            emissiveIntensity: 0.5
-        });
-        
-        const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-        const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-        
-        leftHeadlight.position.set(-0.6, 0.5, (type === 'sedan' ? 2 : type === 'truck' ? 2.5 : type === 'van' ? 2 : 2.1));
-        rightHeadlight.position.set(0.6, 0.5, (type === 'sedan' ? 2 : type === 'truck' ? 2.5 : type === 'van' ? 2 : 2.1));
-        
-        car.add(leftHeadlight);
-        car.add(rightHeadlight);
+                // Cabin
+                cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 1.5), bodyMaterial);
+                cabin.position.set(0, 1.1, -0.2);
+                car.add(cabin);
+
+                // Hood
+                hood = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 1), bodyMaterial);
+                hood.position.set(0, 0.7, 1.5);
+                car.add(hood);
+
+                // Trunk
+                trunk = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 0.8), bodyMaterial);
+                trunk.position.set(0, 0.7, -1.7);
+                car.add(trunk);
+                
+                // Wheel positions for sedan
+                const wheelPositionsSedan = [
+                    { x: -0.9, y: 0.4, z: 1.2 },
+                    { x: 0.9, y: 0.4, z: 1.2 },
+                    { x: -0.9, y: 0.4, z: -1.2 },
+                    { x: 0.9, y: 0.4, z: -1.2 }
+                ];
+                wheelPositionsSedan.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.rotation.z = Math.PI / 2;
+                    car.add(wheel);
+                });
+
+                // Headlights for sedan
+                const headlightGeometrySedan = new THREE.SphereGeometry(0.2, 16, 16);
+                const headlightMaterialSedan = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
+                const leftHeadlightSedan = new THREE.Mesh(headlightGeometrySedan, headlightMaterialSedan);
+                const rightHeadlightSedan = new THREE.Mesh(headlightGeometrySedan, headlightMaterialSedan);
+                leftHeadlightSedan.position.set(-0.6, 0.5, 2);
+                rightHeadlightSedan.position.set(0.6, 0.5, 2);
+                car.add(leftHeadlightSedan);
+                car.add(rightHeadlightSedan);
+
+                break;
+
+            case 'truck':
+                // Chassis
+                mainBody = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), bodyMaterial);
+                mainBody.position.y = 0.4;
+                car.add(mainBody);
+
+                // Cabin
+                cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 2), bodyMaterial);
+                cabin.position.set(0, 1.5, 1);
+                car.add(cabin);
+
+                // Cargo Bed
+                cargoBed = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.7, 2), bodyMaterial);
+                cargoBed.position.set(0, 0.9, -1.5);
+                car.add(cargoBed);
+
+                 // Wheel positions for truck
+                const wheelPositionsTruck = [
+                    { x: -1, y: 0.4, z: 1.8 },
+                    { x: 1, y: 0.4, z: 1.8 },
+                    { x: -1, y: 0.4, z: -1.8 },
+                    { x: 1, y: 0.4, z: -1.8 }
+                ];
+                wheelPositionsTruck.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.rotation.z = Math.PI / 2;
+                    car.add(wheel);
+                });
+
+                 // Headlights for truck
+                const headlightGeometryTruck = new THREE.SphereGeometry(0.2, 16, 16);
+                const headlightMaterialTruck = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
+                const leftHeadlightTruck = new THREE.Mesh(headlightGeometryTruck, headlightMaterialTruck);
+                const rightHeadlightTruck = new THREE.Mesh(headlightGeometryTruck, headlightMaterialTruck);
+                leftHeadlightTruck.position.set(-0.7, 0.8, 2.5);
+                rightHeadlightTruck.position.set(0.7, 0.8, 2.5);
+                car.add(leftHeadlightTruck);
+                car.add(rightHeadlightTruck);
+
+                break;
+
+            case 'van':
+                // Main Body
+                mainBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.5, 4), bodyMaterial);
+                mainBody.position.y = 0.75;
+                car.add(mainBody);
+
+                // Front Hood/Engine area
+                hood = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 1), bodyMaterial);
+                hood.position.set(0, 0.5, 2);
+                car.add(hood);
+
+                 // Wheel positions for van
+                const wheelPositionsVan = [
+                    { x: -1.1, y: 0.4, z: 1.5 },
+                    { x: 1.1, y: 0.4, z: 1.5 },
+                    { x: -1.1, y: 0.4, z: -1.5 },
+                    { x: 1.1, y: 0.4, z: -1.5 }
+                ];
+                 wheelPositionsVan.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.rotation.z = Math.PI / 2;
+                    car.add(wheel);
+                });
+
+                 // Headlights for van
+                const headlightGeometryVan = new THREE.SphereGeometry(0.2, 16, 16);
+                const headlightMaterialVan = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
+                const leftHeadlightVan = new THREE.Mesh(headlightGeometryVan, headlightMaterialVan);
+                const rightHeadlightVan = new THREE.Mesh(headlightGeometryVan, headlightMaterialVan);
+                leftHeadlightVan.position.set(-0.8, 0.5, 2.1);
+                rightHeadlightVan.position.set(0.8, 0.5, 2.1);
+                car.add(leftHeadlightVan);
+                car.add(rightHeadlightVan);
+
+                break;
+
+            case 'sport':
+                // Low Profile Body
+                mainBody = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.4, 3.5), bodyMaterial);
+                mainBody.position.y = 0.3;
+                car.add(mainBody);
+
+                // Sloped Front
+                 hood = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.3, 1), bodyMaterial);
+                hood.position.set(0, 0.5, 1.8);
+                car.add(hood);
+
+                 // Cabin (smaller)
+                 cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 1.2), bodyMaterial);
+                cabin.position.set(0, 0.7, -0.5);
+                 car.add(cabin);
+
+                 // Wheel positions for sport
+                const wheelPositionsSport = [
+                    { x: -0.9, y: 0.3, z: 1.5 },
+                    { x: 0.9, y: 0.3, z: 1.5 },
+                    { x: -0.9, y: 0.3, z: -1.5 },
+                    { x: 0.9, y: 0.3, z: -1.5 }
+                ];
+                 wheelPositionsSport.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.rotation.z = Math.PI / 2;
+                    car.add(wheel);
+                });
+
+                 // Headlights for sport
+                const headlightGeometrySport = new THREE.SphereGeometry(0.2, 16, 16);
+                const headlightMaterialSport = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
+                const leftHeadlightSport = new THREE.Mesh(headlightGeometrySport, headlightMaterialSport);
+                const rightHeadlightSport = new THREE.Mesh(headlightGeometrySport, headlightMaterialSport);
+                leftHeadlightSport.position.set(-0.6, 0.4, 2.1);
+                rightHeadlightSport.position.set(0.6, 0.4, 2.1);
+                car.add(leftHeadlightSport);
+                car.add(rightHeadlightSport);
+
+                break;
+
+            default: // Default sedan design
+                 // Base body
+                mainBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 3), bodyMaterial);
+                mainBody.position.y = 0.5;
+                car.add(mainBody);
+
+                // Cabin
+                cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 1.5), bodyMaterial);
+                cabin.position.set(0, 1.1, -0.2);
+                car.add(cabin);
+
+                // Hood
+                hood = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 1), bodyMaterial);
+                hood.position.set(0, 0.7, 1.5);
+                car.add(hood);
+
+                // Trunk
+                trunk = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 0.8), bodyMaterial);
+                trunk.position.set(0, 0.7, -1.7);
+                car.add(trunk);
+                
+                // Wheel positions for default sedan
+                const wheelPositionsDefault = [
+                    { x: -0.9, y: 0.4, z: 1.2 },
+                    { x: 0.9, y: 0.4, z: 1.2 },
+                    { x: -0.9, y: 0.4, z: -1.2 },
+                    { x: 0.9, y: 0.4, z: -1.2 }
+                ];
+                wheelPositionsDefault.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.rotation.z = Math.PI / 2;
+                    car.add(wheel);
+                });
+
+                // Headlights for default sedan
+                const headlightGeometryDefault = new THREE.SphereGeometry(0.2, 16, 16);
+                const headlightMaterialDefault = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
+                const leftHeadlightDefault = new THREE.Mesh(headlightGeometryDefault, headlightMaterialDefault);
+                const rightHeadlightDefault = new THREE.Mesh(headlightGeometryDefault, headlightMaterialDefault);
+                leftHeadlightDefault.position.set(-0.6, 0.5, 2);
+                rightHeadlightDefault.position.set(0.6, 0.5, 2);
+                car.add(leftHeadlightDefault);
+                car.add(rightHeadlightDefault);
+
+                break;
+        }
 
         return car; // 생성된 차량 객체 반환
     }
@@ -330,6 +475,7 @@ class RacingGame {
     }
 
     createOtherCar(zPosition) {
+        console.log('Attempting to create other car at z:', zPosition);
         const colors = [0x0000ff, 0x00ff00, 0xffff00, 0xffa500, 0x800080, 0xffffff, 0x000000]; // 다양한 색상 추가
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
         
@@ -339,11 +485,14 @@ class RacingGame {
         const otherCar = this.createCar(randomColor, randomType); // 다른 색상과 타입으로 차량 생성
         
         const lane = Math.floor(Math.random() * 3) - 1; // -1, 0, 1 차선
-        // 상대 자동차 생성 위치를 새로운 도로 세그먼트 zPosition의 앞쪽으로 조정
-        otherCar.position.set(lane * (this.roadWidth / 4), 0.25, zPosition + this.roadLength / 2 + Math.random() * this.roadLength);
+        // 상대 자동차 생성 위치를 전달받은 zPosition(새 도로 세그먼트 위치) 기준으로 앞쪽으로 조정
+        // Z축 양의 방향이 앞으로 가는 방향이라고 가정
+        const spawnOffset = this.roadLength * 1.5 + Math.random() * this.roadLength; // 새 세그먼트 끝에서 roadLength*0.5~1.5 떨어진 곳
+        otherCar.position.set(lane * (this.roadWidth / 4), 0.25, zPosition + spawnOffset);
         
         this.scene.add(otherCar);
         this.otherCars.push(otherCar);
+        console.log('Other car created and added. Total other cars:', this.otherCars.length, 'Position:', otherCar.position);
     }
 
     updateRoad() {
@@ -373,8 +522,10 @@ class RacingGame {
             this.lastSegmentZ = newZ;
             this.createEnvironment(newZ);
 
-            // 일정 확률로 다른 차량 생성
-            if (Math.random() < 0.5) { // 50% 확률로 다른 차량 생성
+            // 일정 확률로 다른 차량 생성 (확률 100% 유지)
+            if (Math.random() < 1.0) { // 100% 확률로 다른 차량 생성
+                // 새로운 도로 세그먼트 zPosition을 전달
+                console.log('Condition met to create other car.');
                 this.createOtherCar(newZ);
             }
 
@@ -389,15 +540,19 @@ class RacingGame {
         for (let i = this.otherCars.length - 1; i >= 0; i--) { // Iterate backwards
             const otherCar = this.otherCars[i];
              // Check if otherCar is a valid object
-            if (otherCar && otherCar.position) {
-                otherCar.position.z += this.speed * 0.8; // 플레이어 차량보다 약간 느리게 이동
+            if (otherCar) {
+                otherCar.position.z += this.speed * 0.8; // 플레이어 차량보다 약간 느리게 이동 (Z축 양의 방향으로)
 
-                // 차량이 일정 거리 뒤로 가면 제거
-                if (otherCar.position.z > this.car.position.z + 20) {
+                // 차량이 플레이어 차량보다 훨씬 뒤로 가면 제거 (제거 조건 수정)
+                // Z축 양의 방향이 앞이라고 가정할 때, 플레이어 Z보다 작으면 뒤로 간 것임
+                if (otherCar.position.z < this.car.position.z - this.roadLength) { // 플레이어 차량 Z 위치보다 도로 길이만큼 뒤로 가면 제거
+                    console.log('Removing other car at position:', otherCar.position, 'Player position:', this.car.position);
                     this.scene.remove(otherCar);
                     this.otherCars.splice(i, 1);
                 }
-            } else { // Remove invalid entry if found
+            } else {
+                 // Remove invalid entry if found
+                 console.log('Removing invalid entry from otherCars array at index', i);
                  this.otherCars.splice(i, 1);
             }
         }
